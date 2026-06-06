@@ -299,27 +299,34 @@ function addLogEntry(event) {
 
 // ─── SSE ─────────────────────────────────────────────────────────────────────
 function connectSSE() {
-  if (state.eventSource) state.eventSource.close();
-  const es = new EventSource("/api/stream");
-  state.eventSource = es;
+  if (state.pollInterval) clearInterval(state.pollInterval);
+  state.pollInterval = setInterval(async () => {
+    if (!state.running) return;
+    try {
+      const res = await fetch("/api/stats");
+      const data = await res.json();
+      
+      const prevStates = [...state.philosophers];
+      state.philosophers = data.states || [];
+      state.eatCounts = data.eat_counts || [];
+      state.waitTimes = data.wait_times || [];
+      state.thinkTimes = data.think_times || [];
 
-  es.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-    if (data.ping) return;
+      // Log thay đổi trạng thái
+      state.philosophers.forEach((st, i) => {
+        if (st !== prevStates[i]) {
+          addLogEntry({ time: Date.now(), id: i, action: st, states: state.philosophers, counts: state.eatCounts, deadlock: data.deadlock });
+        }
+      });
 
-    state.philosophers = data.states || [];
-    state.eatCounts = data.counts || [];
-    
-    if (data.deadlock && state.running) state.deadlockCount++;
+      if (data.deadlock && state.running) state.deadlockCount++;
+      updateStats();
 
-    addLogEntry(data);
-    updateStats();
-
-    const alert = document.getElementById("deadlock-alert");
-    if (data.deadlock) alert.classList.remove("hidden");
-    else alert.classList.add("hidden");
-  };
-  es.onerror = () => { /* silently retry */ };
+      const alert = document.getElementById("deadlock-alert");
+      if (data.deadlock) alert.classList.remove("hidden");
+      else alert.classList.add("hidden");
+    } catch(e) {}
+  }, 500);
 }
 
 // ─── Controls ────────────────────────────────────────────────────────────────
@@ -377,7 +384,7 @@ btnStart.addEventListener("click", async () => {
 btnStop.addEventListener("click", async () => {
   await fetch("/api/stop", {method: "POST"});
   state.running = false;
-  if (state.eventSource) { state.eventSource.close(); state.eventSource = null; }
+  if (state.pollInterval) { clearInterval(state.pollInterval); state.pollInterval = null; }
   statusDot.classList.remove("active");
   statusText.textContent = "Đã dừng";
   btnStart.disabled = false;
