@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 import random
@@ -268,12 +269,19 @@ def stream():
     def event_generator():
         while True:
             try:
-                event = simulation.events.get(timeout=1.0)
+                event = simulation.events.get(timeout=0.5)
                 yield f"data: {json.dumps(event)}\n\n"
             except queue.Empty:
                 yield f"data: {json.dumps({'ping': True})}\n\n"
+            time.sleep(0.01)
     return Response(event_generator(), mimetype="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+                    headers={
+                        "Cache-Control": "no-cache",
+                        "X-Accel-Buffering": "no",
+                        "Connection": "keep-alive",
+                        "Access-Control-Allow-Origin": "*"
+                    })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, threaded=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, threaded=True)
