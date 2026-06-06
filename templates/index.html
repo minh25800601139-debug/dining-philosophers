@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dining Philosophers — Trực quan hoá</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="grain"></div>
+<header>
+  <div class="header-inner">
+    <div class="logo">🍽 Dining Philosophers</div>
+    <div class="header-meta"></div>
+  </div>
+</header>
+
+<main>
+  <!-- Control Panel -->
+  <aside class="panel control-panel">
+    <h2 class="panel-title">Điều khiển</h2>
+
+    <div class="field">
+      <label>Số triết gia <span id="n-display">5</span></label>
+      <input type="range" id="n-input" min="3" max="7" value="5">
+      <div class="range-ticks"><span>3</span><span>5</span><span>7</span></div>
+    </div>
+     <div class="field">
+      <label>Tốc độ <span id="speed-display">1x</span></label>
+     <input type="range" id="speed-input" min="1" max="5" value="1" step="0.5">
+     <div class="range-ticks"><span>Chậm</span><span>Vừa</span><span>Nhanh</span></div>
+    </div>
+    <div class="field">
+      <label>Chiến lược giải quyết</label>
+      <div class="strategy-group">
+        <label class="strategy-option">
+          <input type="radio" name="strategy" value="resource_hierarchy" checked>
+          <span class="strategy-card">
+            <span class="strategy-icon">🔢</span>
+            <span class="strategy-name">Resource Hierarchy</span>
+            <span class="strategy-desc">An toàn · Không deadlock</span>
+          </span>
+        </label>
+        <label class="strategy-option">
+          <input type="radio" name="strategy" value="semaphore">
+          <span class="strategy-card">
+            <span class="strategy-icon">🚦</span>
+            <span class="strategy-name">Semaphore</span>
+            <span class="strategy-desc">Tối đa n-1 người ăn</span>
+          </span>
+        </label>
+        <label class="strategy-option">
+          <input type="radio" name="strategy" value="naive">
+          <span class="strategy-card">
+            <span class="strategy-icon">💀</span>
+            <span class="strategy-name">Naive (Deadlock)</span>
+            <span class="strategy-desc">Nguy hiểm · Demo deadlock</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button id="btn-start" class="btn btn-primary">▶ Bắt đầu</button>
+      <button id="btn-stop" class="btn btn-danger" disabled>■ Dừng</button>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Chưa chạy</span>
+    </div>
+
+    <div id="deadlock-alert" class="deadlock-alert hidden">
+      ⚠️ DEADLOCK PHÁT HIỆN!<br>
+      <small>Tất cả triết gia đang chờ fork</small>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <h3>Trạng thái</h3>
+      <div class="legend-item"><span class="dot thinking"></span> Đang suy nghĩ</div>
+      <div class="legend-item"><span class="dot hungry"></span> Đang đói / Chờ</div>
+      <div class="legend-item"><span class="dot eating"></span> Đang ăn</div>
+      <div class="legend-item"><span class="fork-icon">🍴</span> Fork (đũa)</div>
+    </div>
+  </aside>
+
+  <!-- Visualization -->
+  <section class="viz-section">
+    <div class="table-wrapper">
+      <canvas id="dining-canvas"></canvas>
+      <div id="tooltip" class="tooltip hidden"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="log-panel">
+      <div class="log-header">
+        <span>Nhật ký sự kiện</span>
+        <button id="btn-clear-log" class="btn-small">Xoá</button>
+      </div>
+      <div id="event-log"></div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <aside class="panel stats-panel">
+    <h2 class="panel-title">Thống kê</h2>
+    <div id="stats-grid"></div>
+
+    <div class="total-stats">
+      <div class="total-item">
+        <div class="total-label">Tổng lần ăn</div>
+        <div class="total-value" id="total-eats">0</div>
+      </div>
+      <div class="total-item">
+        <div class="total-label">Deadlock</div>
+        <div class="total-value" id="deadlock-count">0</div>
+      </div>
+    </div>
+
+    <div class="explanation">
+      <h3>Về bài toán</h3>
+      <p>5 triết gia ngồi quanh bàn tròn. Mỗi người cần <strong>2 đũa</strong> để ăn, nhưng chỉ có 1 đũa giữa mỗi cặp.</p>
+      <p>Vấn đề: nếu tất cả cùng cầm đũa trái → <strong>deadlock</strong>!</p>
+      <h3>Giải pháp</h3>
+      <p><strong>Resource Hierarchy:</strong> Đánh số đũa, luôn cầm số nhỏ trước.</p>
+      <p><strong>Semaphore:</strong> Chỉ cho tối đa n-1 người đói cùng lúc.</p>
+    </div>
+  </aside>
+</main>
+
+<script src="/static/js/simulation.js"></script>
+</body>
+</html>
