@@ -239,7 +239,9 @@ class DiningSimulation:
                 "n": self.n
             }
 
+sim_speed = {"value": 1.0}
 simulation = DiningSimulation()
+
 
 @app.route("/")
 def index():
@@ -254,6 +256,12 @@ def start():
     simulation.reset(n=n, strategy=strategy)
     simulation.start()
     return jsonify({"status": "started", "n": n, "strategy": strategy})
+
+@app.route("/api/speed", methods=["POST"])
+def set_speed():
+    data = request.json or {}
+    sim_speed["value"] = float(data.get("speed", 1.0))
+    return jsonify({"status": "ok"})
 
 @app.route("/api/stop", methods=["POST"])
 def stop():

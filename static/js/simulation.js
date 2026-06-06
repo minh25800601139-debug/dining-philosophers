@@ -185,7 +185,7 @@ function draw() {
     ctx.font = `${phSize * 0.9}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    const emoji = st === "Suy nghĩ" ? "🤔" : st === "Đói" ? "😤" : "😋";
+    const emoji = st === "thinking" ? "🤔" : st === "hungry" ? "😤" : "😋";
     ctx.fillText(emoji, pp.x, pp.y - 2);
 
     // Name + count
